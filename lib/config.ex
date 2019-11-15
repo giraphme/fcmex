@@ -11,11 +11,18 @@ defmodule Fcmex.Config do
   end
 
   def server_key do
-    Application.get_env(:fcmex, :server_key) || retrieve_on_run_time("FCM_SERVER_KEY") ||
-      raise "FCM Server key is not found on your environment variables"
+    retrieve_server_key() || raise "FCM Server key is not found on your environment variables"
   end
 
-  def retrieve_on_run_time(key) do
+  defp retrieve_server_key() do
+    case Application.get_env(:fcmex, :server_key) do
+      {:system, env} -> retrieve_on_run_time(env)
+      server_key when is_binary(server_key) -> server_key
+      _ -> retrieve_on_run_time("FCM_SERVER_KEY")
+    end
+  end
+
+  defp retrieve_on_run_time(key) do
     System.get_env(key)
   end
 end
